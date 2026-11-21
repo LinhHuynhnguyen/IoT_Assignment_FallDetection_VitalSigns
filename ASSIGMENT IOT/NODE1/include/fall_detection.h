@@ -3,7 +3,7 @@
 
 #include "global.h"
 
-#define LED_FALL_PIN 48  // LED đơn tích hợp trên board YoloUNO[cite: 3]
+#define LED_FALL_PIN 48  // LED trên board YoloUNO (nếu là NeoPixel RGB thì digitalWrite không sáng - cần kiểm tra)
 
 void task_fall_detection(void *pvParameters);
 

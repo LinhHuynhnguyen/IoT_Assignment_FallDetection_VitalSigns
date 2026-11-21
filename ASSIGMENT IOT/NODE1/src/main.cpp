@@ -7,11 +7,14 @@
 void setup() {
     Serial.begin(115200);
     xDataMutex = xSemaphoreCreateMutex(); // Tạo Mutex trước khi tạo Task
-    Wire.begin(11, 12);
+    xI2CMutex  = xSemaphoreCreateMutex();
+    Wire.begin(I2C_SDA_PIN, I2C_SCL_PIN);
 
-    xTaskCreate(task_read_vitals,    "Vitals", 4096, NULL, 1, NULL);
-    xTaskCreate(task_fall_detection, "TinyML", 8192, NULL, 2, NULL); // Stack lớn cho AI
-    xTaskCreate(task_espnow_send,    "ESPNow", 4096, NULL, 2, NULL);
+#if !USE_FAKE_DATA
+    xTaskCreate(task_read_vitals,    "Vitals", 4096, NULL, 2, NULL);
+    xTaskCreate(task_fall_detection, "Fall",   8192, NULL, 3, NULL); // mẫu 50 Hz nên ưu tiên cao hơn
+#endif
+    xTaskCreate(task_espnow_send,    "ESPNow", 4096, NULL, 2, &xEspNowTaskHandle);
 }
 
 void loop() { vTaskDelay(pdMS_TO_TICKS(1000)); }

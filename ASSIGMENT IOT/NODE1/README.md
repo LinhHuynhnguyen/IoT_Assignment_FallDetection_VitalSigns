@@ -1,47 +1,29 @@
-# Espressif 32: development platform for [PlatformIO](https://platformio.org)
+# Node 1 – Thiết bị đeo (MAX30102 + MPU6050 + ESP-NOW)
 
-[![Build Status](https://github.com/platformio/platform-espressif32/workflows/Examples/badge.svg)](https://github.com/platformio/platform-espressif32/actions)
+Board: YoloUNO (ESP32-S3), PlatformIO + Arduino. Node 1 đo nhịp tim/SpO2, phát hiện ngã và gửi gói ESP-NOW cho Node 2.
 
-ESP32 is a series of low-cost, low-power system on a chip microcontrollers with integrated Wi-Fi and Bluetooth. ESP32 integrates an antenna switch, RF balun, power amplifier, low-noise receive amplifier, filters, and power management modules.
+## Cấu trúc
+| File | Nhiệm vụ |
+|---|---|
+| `include/config.h` | MAC Node 2, kênh ESP-NOW, ngưỡng ngã, chế độ Serial |
+| `include/global.h` | Struct gói tin `SensorPacket` (theo hợp đồng giao tiếp) |
+| `src/sensor_vitals.cpp` | Đọc MAX30102: HR (trung bình 4 nhịp), SpO2 (ước lượng AC/DC), cờ `valid` |
+| `src/fall_detection.cpp` | Đọc MPU6050 50 Hz, SVM, phát hiện ngã 3 pha + nút BOOT hủy báo giả |
+| `src/espnow_sender.cpp` | Gửi ESP-NOW (seq, callback log, gửi ngay khi ngã) |
+| `tools/plot_svm.py` | Thu và vẽ đồ thị SVM |
 
-* [Home](https://registry.platformio.org/platforms/platformio/espressif32) (home page in the PlatformIO Registry)
-* [Documentation](https://docs.platformio.org/page/platforms/espressif32.html) (advanced usage, packages, boards, frameworks, etc.)
+## Gói tin ESP-NOW
+`{uint8 hr, uint8 spo2, uint8 fall, uint8 valid, uint32 seq}` (packed, 8 byte). Node 2 phải dùng đúng struct này.
 
-# Usage
+## Đấu nối
+MAX30102 và MPU6050 chung bus I2C: SDA = GPIO 11, SCL = GPIO 12, cấp 3.3 V. Địa chỉ khác nhau (0x57 / 0x68).
 
-1. [Install PlatformIO](https://platformio.org)
-2. Create PlatformIO project and configure a platform option in [platformio.ini](https://docs.platformio.org/page/projectconf.html) file:
+## Cấu hình & chạy
+1. Sửa `include/config.h`: `NODE2_MAC` (mặc định broadcast), `ESPNOW_CHANNEL` (trùng Node 2).
+2. Build/nạp bằng PlatformIO, mở Serial Monitor 115200.
+3. `USE_FAKE_DATA 1` để gửi dữ liệu giả (cho Node 2 test khi chưa có cảm biến).
+4. `SERIAL_OUTPUT_MODE 1` để in CSV `ms,ax,ay,az,svm`, rồi dùng `tools/plot_svm.py` vẽ đồ thị.
 
-## Stable version
-
-See `platform` [documentation](https://docs.platformio.org/en/latest/projectconf/sections/env/options/platform/platform.html#projectconf-env-platform) for details.
-
-```ini
-[env:stable]
-; recommended to pin to a version, see https://github.com/platformio/platform-espressif32/releases
-; platform = espressif32 @ ^6.0.1
-platform = espressif32
-board = yolo_uno
-framework = arduino
-monitor_speed = 115200
-
-build_flags =
-    -D ARDUINO_USB_MODE=1
-    -D ARDUINO_USB_CDC_ON_BOOT=1
-
-## Development version
-
-```ini
-[env:development]
-platform = https://github.com/platformio/platform-espressif32.git
-board = yolo_uno
-framework = arduino
-monitor_speed = 115200
-build_flags =
-    -D ARDUINO_USB_MODE=1
-    -D ARDUINO_USB_CDC_ON_BOOT=1
-
-    
-# Configuration
-
-Please navigate to [documentation](https://docs.platformio.org/page/platforms/espressif32.html).
+## Ghi chú
+- SpO2 là ước lượng từ tỉ số AC/DC, chưa hiệu chuẩn y tế; hệ thống chỉ hỗ trợ giám sát.
+- Test ngã chỉ làm trên nệm dày, không ngã thật.
