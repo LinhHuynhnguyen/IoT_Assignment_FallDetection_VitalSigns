@@ -4,6 +4,7 @@ float glob_hr = 0.0;
 float glob_spo2 = 0.0;
 bool glob_is_fall = false;
 unsigned long glob_last_seen_ms = 0;
+bool glob_sensor_valid = false;
 
 bool glob_buzzer_state = false;
 bool glob_buzzer_muted = false;

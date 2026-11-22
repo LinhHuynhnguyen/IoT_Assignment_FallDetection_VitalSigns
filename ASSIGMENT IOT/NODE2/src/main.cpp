@@ -13,6 +13,8 @@ void setup() {
 
     // 2. Bật chế độ AP_STA và khởi động ESP-NOW Receiver
     WiFi.mode(WIFI_AP_STA);
+    Serial.print("Node 2 STA MAC: ");
+    Serial.println(WiFi.macAddress());
     init_espnow_receiver();
 
     // 3. Khởi tạo các Task FreeRTOS
@@ -21,4 +23,7 @@ void setup() {
     xTaskCreate(task_cloud_coreiot, "CoreIoT",   8192, NULL, 1, NULL); // Stack 8KB cho MQTT + OTA
 }
 
-void loop() { vTaskDelay(pdMS_TO_TICKS(1000)); }
+void loop() {
+    logEspNowRx();
+    vTaskDelay(pdMS_TO_TICKS(1000));
+}

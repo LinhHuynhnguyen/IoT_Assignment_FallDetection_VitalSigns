@@ -3,6 +3,7 @@
 #include <WebServer.h>
 
 #define BTN_BOOT_PIN 0
+static constexpr uint8_t esp_now_channel = 1;
 WebServer server(80);
 
 bool isAPMode = true;
@@ -63,7 +64,7 @@ String getSettingsHTML() {
 }
 
 void startAP() {
-    WiFi.softAP(ap_ssid.c_str(), ap_password.c_str());
+    WiFi.softAP(ap_ssid.c_str(), ap_password.c_str(), esp_now_channel);
     Serial.print("AP IP: "); Serial.println(WiFi.softAPIP());
     isAPMode = true;
     connecting = false;
@@ -119,6 +120,11 @@ void main_server_task(void *pvParameters) {
         if (connecting) {
             if (WiFi.status() == WL_CONNECTED) {
                 Serial.print("STA IP: "); Serial.println(WiFi.localIP());
+                const int router_channel = WiFi.channel();
+                Serial.printf("[WiFi] Router channel: %d\n", router_channel);
+                if (router_channel != esp_now_channel) {
+                    Serial.printf("[ESP-NOW] Set Node 1 to channel %d to match the router.\n", router_channel);
+                }
                 isWifiConnected = true;
                 isAPMode = false;
                 connecting = false;

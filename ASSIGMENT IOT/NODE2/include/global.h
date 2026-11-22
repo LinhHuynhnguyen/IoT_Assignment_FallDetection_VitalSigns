@@ -11,6 +11,7 @@ extern float glob_hr;
 extern float glob_spo2;
 extern bool glob_is_fall;
 extern unsigned long glob_last_seen_ms;
+extern bool glob_sensor_valid;
 
 // Trạng thái Còi & Ngưỡng cảnh báo
 extern bool glob_buzzer_state;

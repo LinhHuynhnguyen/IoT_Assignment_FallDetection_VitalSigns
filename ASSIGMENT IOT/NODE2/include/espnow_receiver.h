@@ -4,4 +4,5 @@
 #include "global.h"
 
 void init_espnow_receiver();
+void logEspNowRx();
 #endif
